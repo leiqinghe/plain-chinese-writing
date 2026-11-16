@@ -8,6 +8,9 @@
     python3 scripts/check.py article.md --json  # 机器可读
 
 只依赖标准库，Python 3.8+。
+
+注意：指标针对文章正文。README、说明书这类文档结构不同，跑分不适用，
+只看"禁用句式"那一栏即可。
 """
 
 import argparse
@@ -58,11 +61,32 @@ def non_space_len(s):
     return len(re.sub(r"\s", "", s))
 
 
+def strip_markdown(text):
+    """只保留正文段落：去掉代码块、表格、标题、列表符号、引用符号。"""
+    text = re.sub(r"```[\s\S]*?```", "", text)
+    text = re.sub(r"`[^`\n]*`", "", text)
+    # 引号里的内容多为他人的话或反例，不参与作者文风打分
+    text = re.sub(r"「[^」]*」", "", text)
+    text = re.sub(r"“[^”]*”", "", text)
+    lines = []
+    for line in text.splitlines():
+        s = line.strip()
+        if not s:
+            lines.append("")
+            continue
+        if s.startswith("#") or s.startswith("|") or s.startswith("---"):
+            continue
+        if s.startswith(">"):   # 引用块按引用处理，不参与作者文风打分
+            continue
+        s = re.sub(r"^>\s?", "", s)
+        s = re.sub(r"^[-*+]\s+", "", s)
+        s = re.sub(r"^\d+\.\s+", "", s)
+        lines.append(s)
+    return "\n".join(lines)
+
+
 def analyze(text):
-    # 去掉 markdown 标题符号和引用符号，避免污染句长
-    clean = re.sub(r"^#{1,6}\s*", "", text, flags=re.M)
-    clean = re.sub(r"^>\s?", "", clean, flags=re.M)
-    clean = re.sub(r"`{1,3}", "", clean)
+    clean = strip_markdown(text)
 
     sents = split_sentences(clean)
     paras = split_paragraphs(clean)

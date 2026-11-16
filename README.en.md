@@ -2,7 +2,7 @@
 
 **A writing skill for AI agents that turns "obviously AI-generated" Chinese prose into plain, sequential, human-sounding statements.**
 
-Most Chinese text written by LLMs is not bad because of its vocabulary. It is bad because of its syntax. It builds tension with grammar instead of with information:
+Most Chinese text written by LLMs fails on syntax rather than vocabulary. It builds tension with grammar instead of with information:
 
 - **Withholding the answer** behind a colon: "There is only one reason it got bigger, packed more in, and got cheaper: it got hit."
 - **Label sentences as paragraphs**: "Silicon Valley supports him." No action, just a verdict.
