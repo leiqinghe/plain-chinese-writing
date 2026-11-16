@@ -1,47 +1,25 @@
 # 中文流水写作
 
-一个给 AI agent 用的中文写作技能。装好之后，agent 写中文会按一套固定规则来：句子正序，信息一段一段铺开，评价句放在段末并带上"我"。
+给 AI agent 用的中文写作技能。装上之后，agent 写中文会按一套固定规则来。附一个脚本，能把稿子里几项"AI 味"指标测出来。
 
-配套一个脚本，能测出稿子的句长、句长波动、段长、名词化密度和数字密度，跑完给一张对照表。
+## 规则
 
-## 为什么做这个
-
-我给 AI 改稿的两年里，反复见到同样几种毛病。最常见的一种是把答案藏在冒号后面，比如「变大、加料还能降价，通常只有一个原因：它被打了」，读者得等下半句才知道原因，信息一点没多，紧张感是语法造出来的。另一种是段落开头放一句判断，当小标题用，像「硅谷支持他」，这句话没有动作，也没说怎么支持，写全了应该是「在硅谷，帮他说话的人不少」。
-
-还有两种更隐蔽。一种是丢主语，「换代的主要变化在尺寸和底盘」没说谁改的，读者得自己补。一种是研报腔，「补得是否到位，要看销量」这句话没错，但说话的人不见了。
-
-我把改法整理成规则，又把能量化的部分写成了脚本。
-
-## 六条规则
-
-| 规则 | 具体怎么做 |
+| | |
 |---|---|
-| 正序 | 句首放做事的人或物；动词用加了、换了、砍了，不用在于、体现在 |
-| 流水 | 一段说一件事，说完换段；不铺垫、不总结、不用"与此同时"过渡 |
-| 并列对比 | 同一个维度、同一个口径，并排放 |
-| 第一人称 | 只放在评价的位置，事实句里不出现 |
-| 不制造悬念 | 不藏答案，不让数字单独成段，不把公司写成会生气的人，不在结尾升华 |
+| 正序 | 句首放做事的人或物，动词用加了、换了、砍了 |
+| 流水 | 一段说一件事，不铺垫、不总结、不做过场 |
+| 并列 | 对比同维度、同口径并排放 |
+| 第一人称 | 只在评价的位置出现 |
+| 不悬念 | 不藏答案，不让数字单独成段，不拟人，不升华 |
 | 敢示弱 | 没底、犹豫、没想清楚，照实写 |
 
-完整规则在 [`references/style-rules.md`](references/style-rules.md)，20 条禁用句式在 [`references/banned-patterns.md`](references/banned-patterns.md)。
+完整版在 [`references/style-rules.md`](references/style-rules.md)。
 
-## 改稿三步
-
-拿到稿子按顺序过三遍，每遍只做一件事。
-
-**第一步，去悬念。** 搜四种东西：冒号后面给答案的句子、单独成段的数字或名词、拟人化的动词、结尾的升华。删掉之后看信息有没有损失，没有就删。
-
-**第二步，去名词化。** 找句首是"……的+名词"的句子，改成"把……怎么样"。"轴距的增加"改成"把轴距加长"，"成本优化"改成"把成本压下去"。
-
-**第三步，补第一人称。** 找中立口吻的评价句，把"评价"换成"我的反应"。"按配置分布，飞翔版最划算"改成"要我自己掏钱，会选飞翔版"。
-
-三遍分开过。混在一起改，通常悬念删了，句子还是没主语。
-
-## 改前改后
+## 例子
 
 改前：
 
-> 一台车同时做到变大、加料、降价，通常只有一个原因：它被打了。
+> 变大、加料还能降价，通常只有一个原因：它被打了。
 
 改后：
 
@@ -49,83 +27,45 @@
 
 另外三组在 [`examples/before-after.md`](examples/before-after.md)。
 
+## 改稿
+
+1. 删掉冒号后给答案的句子、单独成段的数字、拟人化的动词、结尾的升华。
+2. 把"……的+名词"改成"把……怎么样"。
+3. 中立评价换成"我的反应"。
+
 ## 安装
 
 ```bash
-git clone https://github.com/leiqinghe/plain-chinese-writing.git
+cp -R plain-chinese-writing ~/.agents/skills/plain-chinese-writing          # OpenCode
+ln -s "$PWD/plain-chinese-writing" ~/.claude/skills/plain-chinese-writing    # Claude Code / Codex
 ```
 
-OpenCode：
+任何能读文件的 agent 都能用。Cursor 和 Copilot 把 `references/banned-patterns.md` 的内容放进 `.cursor/rules/` 或 `.github/copilot-instructions.md`。
 
-```bash
-cp -R plain-chinese-writing ~/.agents/skills/plain-chinese-writing
-```
-
-Claude Code 和 Codex：
-
-```bash
-ln -s "$PWD/plain-chinese-writing" ~/.claude/skills/plain-chinese-writing
-```
-
-Cursor 和 Copilot 不读 SKILL.md，把 `references/banned-patterns.md` 的内容放进 `.cursor/rules/writing-style.mdc` 或 `.github/copilot-instructions.md`。
-
-技能本体是几个 markdown 文件，任何能读文件的 agent 都能用。
-
-## 体检脚本
+## 体检
 
 ```bash
 python3 scripts/check.py 你的稿子.md
 ```
 
 ```
-你的稿子.md
   1668 字 / 48 句 / 24 段
   ✓ 平均句长             33.8     目标 28–36
   ✓ 句长变异系数           0.41     目标 0.4–0.5
   ✗ 长句(≥50字)占比       0.167    目标 0.08–0.16
-  ✓ 平均段长             69.5     目标 60–90
   ✓ 名词化密度/千字         0.60     目标 0–1.0
-  ✓ 数字密度/千字          46.2     目标 25–90
-    短句(≤8字)占比      2.1%
-    短段(≤40字)占比     25.0%
   禁用句式: 未命中
 ```
 
-也支持整个目录，或者加 `--json` 拿机器可读的结果。
+支持目录和 `--json`。指标给文章正文用，文档类只看禁用句式那一栏。
 
-这套指标是给文章正文用的。README、说明书这类文档，句式结构本来就和文章不一样，跑出来不好看是正常的。
-
-## 指标怎么来的
-
-同一篇两千字的稿子，改了四遍，每遍跑一次脚本。
-
-第一版是"悬念版"，句长波动 0.58，短句占 9.3%。删掉揭晓结构和孤立短句之后，波动降到 0.42，短句归零。
-
-接着把"换代的主要变化在尺寸和底盘"这类句子都改成有主语的，名词化密度从 1.49 降到 0.60。
-
-最后补上第一人称，字数几乎没变。
-
-这六个指标都有出处，它们是这几次改动里实际动过的量。
-
-原始数据在 [`references/calibration.md`](references/calibration.md)。
-
-## 目录
+## 文件
 
 ```
-plain-chinese-writing/
-├── SKILL.md                    技能入口
-├── references/
-│   ├── style-rules.md          写作规则
-│   ├── banned-patterns.md      20 条禁用句式
-│   ├── rewrite-path.md         改稿三步
-│   └── calibration.md          实测数据
-├── scripts/
-│   └── check.py                体检脚本，纯标准库
-└── examples/
-    ├── before-after.md         前后对照
-    ├── haiou.md                车型评测
-    ├── blg.md                  赛事快讯
-    └── ai-manju.md             行业观察
+SKILL.md            技能入口
+references/         规则、20 条禁用句式、改稿三步、实测数据
+scripts/check.py    纯标准库
+examples/           四份示例稿
 ```
 
 ## 许可
